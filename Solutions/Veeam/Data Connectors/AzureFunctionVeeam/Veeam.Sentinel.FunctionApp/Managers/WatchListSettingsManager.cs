@@ -47,6 +47,13 @@ namespace Sentinel.Managers
             };
         }
 
+        private static bool IsSensitiveColumn(string columnName)
+        {
+            return string.Equals(columnName, VbrRestApiConstants.VbrPasswordAlias, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(columnName, VoneRestApiConstants.VonePasswordAlias, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(columnName, CovewareWatchlistConstants.CovewarePasswordAlias, StringComparison.OrdinalIgnoreCase);
+        }
+
         private async Task<string> GetColumnFromWatchlist(string watchlistAlias, string id, string columnName)
         {
             _logger.LogInformation($"Calling {nameof(GetColumnFromWatchlist)} for \"{id}\" for {columnName}");
@@ -115,7 +122,15 @@ namespace Sentinel.Managers
                 throw new KeyNotFoundException($"No {columnName} found for \"{id}\"");
             }
 
-            _logger.LogInformation($"Retrieved {columnName} for watchlist \"{id}\", it's equal {value}");
+            if (IsSensitiveColumn(columnName))
+            {
+                _logger.LogInformation($"Retrieved {columnName} for watchlist \"{id}\", value is [REDACTED]");
+            }
+            else
+            {
+                _logger.LogInformation($"Retrieved {columnName} for watchlist \"{id}\", it's equal {value}");
+            }
+
             return value;
         }
 
